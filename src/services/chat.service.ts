@@ -1,5 +1,6 @@
 import { ChatMessage, Conversation } from "@/types";
 import { generateId, sleep } from "@/lib/utils";
+import { db } from "@/lib/db";
 
 const SIMULATED_RESPONSES = [
   "Based on the data analysis, I can see several key trends in your metrics. The user engagement has increased by 23% over the past quarter, with mobile usage leading the growth.",
@@ -8,6 +9,28 @@ const SIMULATED_RESPONSES = [
   "Great question! Let me walk you through the process step by step.\n\n1. **Data Collection**: Gather all relevant data from your sources\n2. **Preprocessing**: Clean and normalize the data\n3. **Analysis**: Apply statistical methods and ML models\n4. **Visualization**: Create interactive charts and dashboards\n5. **Insights**: Generate actionable recommendations\n\nWould you like me to elaborate on any of these steps?",
   "The sentiment analysis of your customer feedback shows:\n\n| Sentiment | Percentage | Count |\n|-----------|-----------|-------|\n| Positive | 62% | 1,240 |\n| Neutral | 24% | 480 |\n| Negative | 14% | 280 |\n\nThe overall trend is positive, with satisfaction scores improving month over month. Key areas of improvement include response time and feature completeness.",
 ];
+
+function toStored(conv: Conversation) {
+  return {
+    id: conv.id,
+    title: conv.title,
+    messages: JSON.stringify(conv.messages),
+    model: conv.model,
+    createdAt: conv.createdAt.toISOString(),
+    updatedAt: conv.updatedAt.toISOString(),
+  };
+}
+
+function fromStored(stored: { id: string; title: string; messages: string; model: string; createdAt: string; updatedAt: string }): Conversation {
+  return {
+    id: stored.id,
+    title: stored.title,
+    messages: JSON.parse(stored.messages) as ChatMessage[],
+    model: stored.model,
+    createdAt: new Date(stored.createdAt),
+    updatedAt: new Date(stored.updatedAt),
+  };
+}
 
 const chatService = {
   async sendMessage(
@@ -29,16 +52,52 @@ const chatService = {
   },
 
   async getConversations(): Promise<Conversation[]> {
-    const stored = localStorage.getItem("neuralflow_conversations");
-    if (stored) {
-      return JSON.parse(stored).map((c: Conversation) => ({
-        ...c,
-        createdAt: new Date(c.createdAt),
-        updatedAt: new Date(c.updatedAt),
-      }));
+    try {
+      const stored = await db.conversations.getAll();
+      if (stored.length > 0) {
+        return stored.map(fromStored);
+      }
+    } catch {
+      // IndexedDB unavailable, fallback below
     }
 
-    const defaultConversations: Conversation[] = [
+    const defaults = this.getDefaultConversations();
+    try {
+      await Promise.all(defaults.map((c) => db.conversations.put(toStored(c))));
+    } catch {
+      // noop
+    }
+    return defaults;
+  },
+
+  async saveConversations(conversations: Conversation[]): Promise<void> {
+    try {
+      await Promise.all(conversations.map((c) => db.conversations.put(toStored(c))));
+    } catch {
+      // noop
+    }
+  },
+
+  async deleteConversation(id: string): Promise<void> {
+    try {
+      await db.conversations.delete(id);
+    } catch {
+      // noop
+    }
+  },
+
+  async searchConversations(query: string): Promise<Conversation[]> {
+    const conversations = await this.getConversations();
+    const lower = query.toLowerCase();
+    return conversations.filter(
+      (c) =>
+        c.title.toLowerCase().includes(lower) ||
+        c.messages.some((m) => m.content.toLowerCase().includes(lower))
+    );
+  },
+
+  getDefaultConversations(): Conversation[] {
+    return [
       {
         id: generateId(),
         title: "Getting Started with NeuralFlow",
@@ -90,29 +149,6 @@ const chatService = {
         model: "gpt-4o",
       },
     ];
-
-    localStorage.setItem("neuralflow_conversations", JSON.stringify(defaultConversations));
-    return defaultConversations;
-  },
-
-  async saveConversations(conversations: Conversation[]): Promise<void> {
-    localStorage.setItem("neuralflow_conversations", JSON.stringify(conversations));
-  },
-
-  async deleteConversation(id: string): Promise<void> {
-    const conversations = await this.getConversations();
-    const filtered = conversations.filter((c) => c.id !== id);
-    localStorage.setItem("neuralflow_conversations", JSON.stringify(filtered));
-  },
-
-  async searchConversations(query: string): Promise<Conversation[]> {
-    const conversations = await this.getConversations();
-    const lower = query.toLowerCase();
-    return conversations.filter(
-      (c) =>
-        c.title.toLowerCase().includes(lower) ||
-        c.messages.some((m) => m.content.toLowerCase().includes(lower))
-    );
   },
 };
 
