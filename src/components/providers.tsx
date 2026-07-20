@@ -6,6 +6,7 @@ import { Toaster } from "sonner";
 import { AuthProvider } from "@/contexts/auth-context";
 import { ThemeProvider } from "@/contexts/theme-context";
 import { ShellProvider } from "@/components/shell-provider";
+import { OfflineBanner } from "@/components/offline-banner";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -24,6 +25,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <AuthProvider>
           <ShellProvider>
             {children}
+            <OfflineBanner />
             <Toaster
               position="bottom-right"
               toastOptions={{
