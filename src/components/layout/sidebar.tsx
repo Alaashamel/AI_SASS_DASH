@@ -19,6 +19,9 @@ import {
   X,
   Bookmark,
   FolderKanban,
+  HelpCircle,
+  Key,
+  Terminal,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSidebarStore, useNotificationStore } from "@/stores";
@@ -39,6 +42,9 @@ const iconMap: Record<string, React.ElementType> = {
   Bell,
   Bookmark,
   FolderKanban,
+  HelpCircle,
+  Key,
+  Terminal,
 };
 
 const NAV_ITEMS = [
@@ -53,6 +59,9 @@ const NAV_ITEMS = [
 const NAV_ITEMS_SECONDARY = [
   { label: "AI Models", href: "/ai-models", icon: "Brain" },
   { label: "Billing", href: "/billing", icon: "CreditCard" },
+  { label: "API Keys", href: "/api-keys", icon: "Key" },
+  { label: "Developer", href: "/developer", icon: "Terminal" },
+  { label: "Help Center", href: "/help-center", icon: "HelpCircle" },
   { label: "Notifications", href: "/notifications", icon: "Bell" },
   { label: "Settings", href: "/settings", icon: "Settings" },
 ];
