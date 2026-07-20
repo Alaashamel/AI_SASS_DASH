@@ -22,6 +22,9 @@ import {
   LogOut,
   Plus,
   Sparkles,
+  HelpCircle,
+  Key,
+  Terminal,
 } from "lucide-react";
 import { useThemeStore, useAuthStore, useSidebarStore } from "@/stores";
 
@@ -42,6 +45,9 @@ const NAV_ITEMS = [
   { label: "Profile", href: "/profile", icon: User, group: "Navigation" },
   { label: "Settings", href: "/settings", icon: Settings, group: "Navigation" },
   { label: "Notifications", href: "/notifications", icon: Bell, group: "Navigation" },
+  { label: "Help Center", href: "/help-center", icon: HelpCircle, group: "Navigation" },
+  { label: "API Keys", href: "/api-keys", icon: Key, group: "Navigation" },
+  { label: "Developer Console", href: "/developer", icon: Terminal, group: "Navigation" },
 ];
 
 export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {

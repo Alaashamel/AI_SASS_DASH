@@ -99,14 +99,5 @@ export const useChatStore = create<ChatState>((set) => ({
   setSearchQuery: (query) => set({ searchQuery: query }),
 }));
 
-interface NotificationState {
-  unreadCount: number;
-  markAllRead: () => void;
-  decrementUnread: () => void;
-}
-
-export const useNotificationStore = create<NotificationState>((set) => ({
-  unreadCount: 5,
-  markAllRead: () => set({ unreadCount: 0 }),
-  decrementUnread: () => set((s) => ({ unreadCount: Math.max(0, s.unreadCount - 1) })),
-}));
+export { useNotificationStore } from "./notification-store";
+export type { AppNotification, NotificationType } from "./notification-store";
