@@ -3,6 +3,7 @@
 import React from "react";
 import { useSidebarStore } from "@/stores";
 import { cn } from "@/lib/utils";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { isOpen } = useSidebarStore();
@@ -10,12 +11,17 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-background">
       <main
+        id="main-content"
+        role="main"
+        aria-label="Main content"
         className={cn(
           "transition-all duration-300 ease-in-out pt-14 lg:pt-0",
           isOpen ? "lg:pl-60" : "lg:pl-[64px]"
         )}
       >
-        <div className="p-4 lg:p-6">{children}</div>
+        <div className="p-4 lg:p-6">
+          <ErrorBoundary>{children}</ErrorBoundary>
+        </div>
       </main>
     </div>
   );
